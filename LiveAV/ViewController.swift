@@ -9,9 +9,30 @@
 import UIKit
 import TXLiteAVSDK_Player
 
+// 直播
+private let LivePlayerUrl = "http://5815.liveplay.myqcloud.com/live/5815_89aad37e06ff11e892905cb9018cf0d4.flv"
+
+// 点播视屏
+/// 主视频
+private let MainVodPlayerUrl = "http://1257264886.vod2.myqcloud.com/5d693b70vodgzp1257264886/a6931c2f5285890781222549274/ZMRWeesLHZAA.mp4"
+/// 插播视频A
+private let VodPlayerUrlA = "http://1257264886.vod2.myqcloud.com/5d693b70vodgzp1257264886/391fbb9b5285890781455476576/F3gYtcgtKoEA.mp4"
+/// 插播视频B
+private let VodPlayerUrlB = "http://1257264886.vod2.myqcloud.com/5d693b70vodgzp1257264886/36cb1afa5285890781455377467/v0Yv0Pkl0fIA.mp4"
+
+private let StartPlayVodATime: Float = 5.0 * 60.0  // 插播视频A时间（单位秒）
+private let StartPlayVodBTime: Float = 9.0 * 60.0  // 插播视频B时间（单位秒）
+
+
+/*
+ 1. 如果两个插播视频没有加载出来咋办，需要判断是否能播放，不能播放不插播？？
+ 2. 预加载时间点的控制，保证能播放；
+ 3.
+ */
+
 class ViewController: UIViewController {
     
-    lazy var livePlayer: TXLivePlayer = {
+    lazy var livePlayer: TXLivePlayer = {   // 直播播放器
         let player = TXLivePlayer()
         player.delegate = self
         player.setLogViewMargin(UIEdgeInsets.zero)
@@ -24,7 +45,7 @@ class ViewController: UIViewController {
         return player
     }()
     
-    lazy var mainVodPlayer: TXVodPlayer = {
+    lazy var mainVodPlayer: TXVodPlayer = {   // 点播播放器
         let player = TXVodPlayer()
         player.vodDelegate = self
         return player
@@ -42,7 +63,7 @@ class ViewController: UIViewController {
         return player
     }()
     
-    let mainView: UIView = {
+    let mainView: UIView = {   //  承载直播视频界面
         let view = UIView()
         return view
     }()
@@ -52,7 +73,7 @@ class ViewController: UIViewController {
         return view
     }()
     
-    let vodView: UIView = {
+    let vodView: UIView = {   //  承载点播视频界面
         let view = UIView()
         return view
     }()
@@ -68,11 +89,11 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-//        TXLiveBase.setConsoleEnabled(true)
-//        TXLiveBase.setLogLevel(.LOGLEVEL_DEBUG)
+        //        TXLiveBase.setConsoleEnabled(true)
+        //        TXLiveBase.setLogLevel(.LOGLEVEL_DEBUG)
         setupPlayer()
         
-//        startLivePlay()
+        //        startLivePlay()
         startMianVodPlayer()
     }
     
@@ -94,41 +115,37 @@ class ViewController: UIViewController {
     
     // MARK: - actions
     
+    /// 播放直播
     func startLivePlay() {
-        // 直播
         livePlayer.setupVideoWidget(mainView.bounds, contain: mainView, insert: 0)
-        let flvUrl = "http://5815.liveplay.myqcloud.com/live/5815_89aad37e06ff11e892905cb9018cf0d4.flv"
-        livePlayer.startPlay(flvUrl, type: TX_Enum_PlayType.PLAY_TYPE_LIVE_FLV)
+        livePlayer.startPlay(LivePlayerUrl, type: TX_Enum_PlayType.PLAY_TYPE_LIVE_FLV)
     }
     
+    /// 播放点播 主视频
     func startMianVodPlayer() {
-        // 主视频
         mainVodPlayer.setupVideoWidget(mainView, insert: 0)
         mainVodPlayer.isAutoPlay = true
-        let flvUrl = "http://1257264886.vod2.myqcloud.com/5d693b70vodgzp1257264886/342ea44e5285890781455239323/AxV6UlAdByAA.mp4"
-        mainVodPlayer.startPlay(flvUrl)
-
-        // 预加载 视频A
-        prepareVodPlayerA()
+        mainVodPlayer.startPlay(MainVodPlayerUrl)
     }
     
+    /// 预加载 视频A
     func prepareVodPlayerA() {
-        // 预加载 视频A
+        print("开始预加载视频A")
         vodPlayerA.isAutoPlay = false
-        let flvUrlA = "http://1257264886.vod2.myqcloud.com/5d693b70vodgzp1257264886/36cb1afa5285890781455377467/v0Yv0Pkl0fIA.mp4"
-        vodPlayerA.startPlay(flvUrlA)
+        vodPlayerA.startPlay(VodPlayerUrlA)
         hasPrepareVodePlayerA = true
     }
     
+    /// 预加载 视频B
     func prepareVodPlayerB() {
-        // 预加载 视频B
+        print("开始预加载视频B")
         vodPlayerB.isAutoPlay = false
-        let flvUrlB = "http://1257264886.vod2.myqcloud.com/5d693b70vodgzp1257264886/390c973a5285890781455464884/FhZuMurMmyMA.mp4"
-        vodPlayerB.startPlay(flvUrlB)
+        vodPlayerB.startPlay(VodPlayerUrlB)
         hasPrepareVodePlayerB = true
     }
 }
 
+// MARK: - <TXLivePlayListener> 直播代理
 extension ViewController: TXLivePlayListener {
     func onPlayEvent(_ EvtID: Int32, withParam param: [AnyHashable : Any]!) {
         print("onPlayEvent---", EvtID, param)
@@ -139,6 +156,7 @@ extension ViewController: TXLivePlayListener {
     }
 }
 
+// MARK: - <TXVodPlayListener> 点播代理
 extension ViewController: TXVodPlayListener {
     func onNetStatus(_ player: TXVodPlayer!, withParam param: [AnyHashable : Any]!) {
         
@@ -148,8 +166,6 @@ extension ViewController: TXVodPlayListener {
         /// 主视频
         if player == mainVodPlayer {
             if (EvtID == PLAY_EVT_PLAY_PROGRESS.rawValue) {
-//                print("---M-----加载进度：\(param[EVT_PLAYABLE_DURATION] ?? "")-------")
-                
                 let progressStr = String(describing: param[EVT_PLAY_PROGRESS] ?? "0.0")
                 let durationStr = String(describing: param[EVT_PLAY_DURATION] ?? "0.0")
                 let progress = DecimalNumberTool.float(num: progressStr)
@@ -157,21 +173,34 @@ extension ViewController: TXVodPlayListener {
                 let percent = progress / duration
                 mainProgress.setProgress(percent, animated: true)
                 
-                // 在主视频播放到10秒的时候，插播视频A
-                if progress >= 10.0, progress <= 12.0, !vodPlayerA.isPlaying(), vodView.isHidden {
+                // 1. 在即将播放插播视频A的时候，先预加载视频A
+                if progress >= (StartPlayVodATime - 20.0), !hasPrepareVodePlayerA {
+                    prepareVodPlayerA()
+                }
+                
+                // 在设定的时间点，播放视频A
+                if progress >= StartPlayVodATime,
+                    progress <= (StartPlayVodATime + 5.0),
+                    !vodPlayerA.isPlaying(),
+                    vodView.isHidden,
+                    vodPlayerA.playableDuration() > 0.0 {
                     vodView.isHidden = false
                     vodPlayerA.setupVideoWidget(vodView, insert: 0)
                     vodPlayerA.resume()
                     print("开始播放视频A")
                 }
                 
-                // 在主视频播放到80秒的时候，预加载视频B5B5
-                if progress >= 80, progress <= 81.0, !hasPrepareVodePlayerB {
+                // 2. 在即将播放插播视频 B 的时候，先预加载视频 B
+                if progress >= (StartPlayVodBTime - 20.0), !hasPrepareVodePlayerB {
                     prepareVodPlayerB()
                 }
                 
-                // 在主视频110秒的时候，播放视频B
-                if progress >= 100.0, progress <= 101.0, !vodPlayerB.isPlaying(), vodView.isHidden {
+                // 在设定的时间点，播放视频 B
+                if progress >= StartPlayVodBTime,
+                    progress <= (StartPlayVodBTime + 5.0),
+                    !vodPlayerB.isPlaying(),
+                    vodView.isHidden,
+                    vodPlayerB.playableDuration() > 0.0 {
                     vodView.isHidden = false
                     vodPlayerB.setupVideoWidget(vodView, insert: 0)
                     vodPlayerB.resume()
@@ -231,6 +260,4 @@ extension ViewController: TXVodPlayListener {
         }
     }
 }
-
-
 
