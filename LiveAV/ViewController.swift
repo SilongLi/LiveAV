@@ -210,6 +210,10 @@ extension ViewController: TXVodPlayListener {
                     vodView.isHidden,
                     vodPlayerA.playableDuration() > 0.0 {
                     
+                    // 1. 对主视频禁音
+                    mainVodPlayer.setMute(true)
+                    
+                    // 2. 开始播放视频A
                     vodView.isHidden = false
                     vodPlayerA.setupVideoWidget(vodView, insert: 0)
                     vodPlayerA.resume()
@@ -228,6 +232,10 @@ extension ViewController: TXVodPlayListener {
                     vodView.isHidden,
                     vodPlayerB.playableDuration() > 0.0 {
                     
+                    // 1. 对主视频禁音
+                    mainVodPlayer.setMute(true)
+                    
+                    // 2. 开始播放视频B
                     vodView.isHidden = false
                     vodPlayerB.setupVideoWidget(vodView, insert: 0)
                     vodPlayerB.resume()
@@ -254,11 +262,15 @@ extension ViewController: TXVodPlayListener {
             }
             
             if EvtID == PLAY_EVT_PLAY_END.rawValue || (!vodPlayerB.isPlaying() && vodProgress.progress > 0.99)  {
+                // 1. 结束播放视频A
                 vodView.isHidden = true
                 vodProgress.progress = 0.0
                 vodPlayerA.stopPlay()
                 vodPlayerA.removeVideoWidget()
                 print("结束播放视频A")
+                
+                // 2. 对主视频开启音频
+                mainVodPlayer.setMute(false)
             }
         }
         
@@ -275,11 +287,15 @@ extension ViewController: TXVodPlayListener {
                 }
                 
                 if EvtID == PLAY_EVT_PLAY_END.rawValue || (!vodPlayerB.isPlaying() && vodProgress.progress > 0.99) {
+                    // 1. 结束播放视频B
                     vodView.isHidden = true
                     vodProgress.progress = 0.0
                     vodPlayerB.stopPlay()
                     vodPlayerB.removeVideoWidget()
                     print("结束播放视频B")
+                    
+                    // 2. 对主视频开启音频
+                    mainVodPlayer.setMute(false)
                 }
             }
         }
