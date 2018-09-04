@@ -8,6 +8,7 @@ target 'LiveAV' do
 
 #pod 'TXLiteAVSDK_Smart'
 #pod 'TXLiteAVSDK_UGC'
-pod 'TXLiteAVSDK_Player'
+#pod 'TXLiteAVSDK_Player'
+pod 'GuidePageView'
 
 end

@@ -107,11 +107,11 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        //        TXLiveBase.setConsoleEnabled(true)
-        //        TXLiveBase.setLogLevel(.LOGLEVEL_DEBUG)
+//        TXLiveBase.setConsoleEnabled(true)
+//        TXLiveBase.setLogLevel(.LOGLEVEL_DEBUG)
         setupPlayer()
         
-        //        startLivePlay()
+//        startLivePlay()
         startMianVodPlayer()
     }
     
